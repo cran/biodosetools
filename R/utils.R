@@ -9,23 +9,17 @@
 #'
 #' @return List of raw and TeX formulae.
 #' @noRd
-parse_model_formula <- function(model_formula = c("lin-quad", "lin", "lin-quad-no-int", "lin-no-int")) {
+parse_model_formula <- function(model_formula = c("lin-quad", "lin")) {
   # Validate parameters
   model_formula <- match.arg(model_formula)
 
   # Parse formula
   if (model_formula == "lin-quad") {
     fit_formula_raw <- "aberr ~ -1 + coeff_C + coeff_alpha + coeff_beta"
-    fit_formula_tex <- "Y = C + \\alpha D + \\beta D^{2}"
+    fit_formula_tex <- "\\lambda = C + \\alpha D + \\beta D^{2}"
   } else if (model_formula == "lin") {
     fit_formula_raw <- "aberr ~ -1 + coeff_C + coeff_alpha"
-    fit_formula_tex <- "Y = C + \\alpha D"
-  } else if (model_formula == "lin-quad-no-int") {
-    fit_formula_raw <- "aberr ~ -1 + coeff_alpha + coeff_beta"
-    fit_formula_tex <- "Y = \\alpha D + \\beta D^{2}"
-  } else if (model_formula == "lin-no-int") {
-    fit_formula_raw <- "aberr ~ -1 + coeff_alpha"
-    fit_formula_tex <- "Y = \\alpha D"
+    fit_formula_tex <- "\\lambda = C + \\alpha D"
   }
 
   formula_list <- list(
@@ -45,7 +39,7 @@ parse_model_formula <- function(model_formula = c("lin-quad", "lin", "lin-quad-n
 #'
 #' @return Vector of coefficient names
 #' @noRd
-names_from_model_formula <- function(model_formula = c("lin-quad", "lin", "lin-quad-no-int", "lin-no-int")) {
+names_from_model_formula <- function(model_formula = c("lin-quad", "lin")) {
   # Validate parameters
   model_formula <- match.arg(model_formula)
 
@@ -54,10 +48,6 @@ names_from_model_formula <- function(model_formula = c("lin-quad", "lin", "lin-q
     names <- c("coeff_C", "coeff_alpha", "coeff_beta")
   } else if (model_formula == "lin") {
     names <- c("coeff_C", "coeff_alpha")
-  } else if (model_formula == "lin-quad-no-int") {
-    names <- c("coeff_alpha", "coeff_beta")
-  } else if (model_formula == "lin-no-int") {
-    names <- c("coeff_alpha")
   }
 
   return(names)
@@ -186,22 +176,10 @@ to_title <- function(string) {
 #' @noRd
 list_fitting_formulas <- function() {
   fitting_formulas <- list(
-    "Linear quadratic" = c(
-      "lin-quad"
-      # "lin-quad-no-int"
-    ) %>%
-      `names<-`(c(
-        rlang::as_utf8_character("Y = C + \u03B1D + \u03B2D\u00B2")
-        # rlang::as_utf8_character("Y = \u03B1D + \u03B2D\u00B2")
-      )),
-    "Linear" = c(
-      "lin"
-      # "lin-quad-no-int"
-    ) %>%
-      `names<-`(c(
-        rlang::as_utf8_character("Y = C + \u03B1D")
-        # rlang::as_utf8_character("Y = \u03B1D")
-      ))
+    "Linear quadratic" = c("lin-quad") %>%
+      `names<-`(c(rlang::as_utf8_character("\u03BB = C + \u03B1D + \u03B2D\u00B2"))),
+    "Linear" = c("lin") %>%
+      `names<-`(c(rlang::as_utf8_character("\u03BB = C + \u03B1D")))
   )
 
   return(fitting_formulas)
@@ -255,8 +233,10 @@ parse_conf_int_text <- function(conf_int) {
 #' Validate names
 #' @noRd
 match_names <- function(x, lookup) {
-  unmatched <- x[-grep(paste(lookup, collapse = "|"), x)]
+  unmatched <- setdiff(x, lookup)
   if (length(unmatched) > 0) {
     stop("Valid names are ", paste(lookup, collapse = ", "))
+  } else {
+    return(x)
   }
 }

@@ -86,8 +86,7 @@ mod_fitting_trans_ui <- function(id, label) {
                 ),
                 options = list(
                   placeholder = "Select observed colors"
-                  # TODO: use renderUI to force maxItems
-                  #       to be length(trans_color_select)
+                  # TODO: use renderUI to force maxItems to be length(trans_color_select)
                   # maxItems = 5
                 ),
                 multiple = TRUE
@@ -277,8 +276,7 @@ mod_fitting_trans_ui <- function(id, label) {
               label = NULL,
               choices = c(
                 "Fitting formula"  = "formula",
-                "Fitting model"    = "model" # ,
-                # "Decision thresholds" = "decision_thresholds"
+                "Fitting model"    = "model"
               )
             ),
             # Contents
@@ -291,12 +289,7 @@ mod_fitting_trans_ui <- function(id, label) {
               condition = "input.help_fitting_options_option == 'model'",
               ns = ns,
               include_help("fitting/fitting_options_model.md")
-            ) # ,
-            # conditionalPanel(
-            #   condition = "input.help_fitting_options_option == 'decision_thresholds'",
-            #   ns = ns,
-            #   include_help("fitting/fitting_options_decision_thresholds.md")
-            # )
+            )
           )
         ),
         fluidRow(
@@ -318,13 +311,7 @@ mod_fitting_trans_ui <- function(id, label) {
                 "Quasi-Poisson" = "quasipoisson"
               ),
               selected = "automatic"
-            ) # ,
-            # Decision thresholds
-            # textInput(
-            #   ns("decision_threshold_cells"),
-            #   label ="Cells for decision thresholds",
-            #   value = "150 500 1000"
-            # )
+            )
           )
         )
       )
@@ -337,7 +324,6 @@ mod_fitting_trans_ui <- function(id, label) {
         title = "Irradiation conditions",
         status = "primary",
         collapsible = TRUE,
-        collapsed = TRUE,
         col_6(
           class = "col-inner-textinput-left",
           textInput(
@@ -440,7 +426,6 @@ mod_fitting_trans_ui <- function(id, label) {
           # Translocation frequency
           selectInput(
             ns("frequency_select"),
-            # label = "Translocation frequency",
             label = NULL,
             width = "180px",
             choices = list(
@@ -491,15 +476,7 @@ mod_fitting_trans_ui <- function(id, label) {
               class = "hot-improved",
               rHandsontableOutput(ns("fit_var_cov_mat"))
             )
-          ) # ,
-          # tabPanel(
-          #   tabName = "Decision thresholds",
-          #   h5("Decision thresholds"),
-          #   div(
-          #     class = "hot-improved",
-          #     rHandsontableOutput(ns("fit_decision_thresh"))
-          #   )
-          # )
+          )
         ),
 
         # Box: Export data and results ----

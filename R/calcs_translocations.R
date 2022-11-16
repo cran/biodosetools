@@ -29,7 +29,7 @@ calculate_genome_factor <- function(dna_table, chromosomes, colors, sex) {
 
   # Calculate first sum
   single_sum <- full_table %>%
-    dplyr::select(.data$genome_factor) %>%
+    dplyr::select("genome_factor") %>%
     dplyr::summarise(
       single_sum = sum(.data$genome_factor * (1 - .data$genome_factor))
     ) %>%
@@ -112,7 +112,7 @@ calculate_trans_rate_sigurdson <- function(cells, genome_factor, age_value,
 #' @export
 calculate_trans_rate_manual <- function(cells, genome_factor, expected_aberr_value) {
   # Expected aberrations
-  expected_aberr <-cells * genome_factor * expected_aberr_value
+  expected_aberr <- cells * genome_factor * expected_aberr_value
 
   return(expected_aberr)
 }

@@ -10,7 +10,6 @@
 #'
 #' @return Numeric value of AIC.
 AIC_from_data <- function(general_fit_coeffs, data, dose_var = "dose", yield_var = "yield", fit_link = "identity") {
-
   # Manual log-likelihood function
   loglik_from_data <- function(data, fit_link) {
     if (fit_link == "identity") {
@@ -50,11 +49,15 @@ AIC_from_data <- function(general_fit_coeffs, data, dose_var = "dose", yield_var
 #' @param genome_factor Genomic conversion factor used in translocations, else 1.
 #' @param aberr_module Aberration module.
 #'
-#' @return List containing estimated doses data frame and AIC.
+#' @return List containing estimated doses data frame, AIC, and \code{conf_int_*} used.
 #' @export
 estimate_whole_body_merkle <- function(case_data, fit_coeffs, fit_var_cov_mat,
                                        conf_int_yield = 0.83, conf_int_curve = 0.83,
-                                       protracted_g_value = 1, genome_factor = 1, aberr_module) {
+                                       protracted_g_value = 1, genome_factor = 1,
+                                       aberr_module = c("dicentrics", "translocations", "micronuclei")) {
+  # Validate parameters
+  aberr_module <- match.arg(aberr_module)
+
   # Parse aberrations and cells
   aberr <- case_data[["X"]]
   cells <- case_data[["N"]]
@@ -161,12 +164,16 @@ estimate_whole_body_merkle <- function(case_data, fit_coeffs, fit_var_cov_mat,
 #' @param protracted_g_value Protracted \eqn{G(x)} value.
 #' @param aberr_module Aberration module.
 #'
-#' @return List containing estimated doses data frame and AIC.
+#' @return List containing estimated doses data frame, AIC, and \code{conf_int} used.
 #' @export
 estimate_whole_body_delta <- function(case_data, fit_coeffs, fit_var_cov_mat,
-                                      conf_int = 0.95, protracted_g_value = 1, aberr_module) {
+                                      conf_int = 0.95, protracted_g_value = 1,
+                                      aberr_module = c("dicentrics", "translocations", "micronuclei")) {
+  # Validate parameters
+  aberr_module <- match.arg(aberr_module)
+
   # Parse parameters and coefficients
-  if (aberr_module == "dicentrics" | aberr_module == "micronuclei") {
+  if (aberr_module %in% c("dicentrics", "micronuclei")) {
     lambda_est <- case_data[["y"]]
   } else if (aberr_module == "translocations") {
     lambda_est <- case_data[["Fg"]]
@@ -182,7 +189,7 @@ estimate_whole_body_delta <- function(case_data, fit_coeffs, fit_var_cov_mat,
 
   if (disp >= 1) {
     # Use empirical error sqrt(var / N) if disp >= 1
-    if (aberr_module == "dicentrics" | aberr_module == "micronuclei") {
+    if (aberr_module %in% c("dicentrics", "micronuclei")) {
       lambda_est_sd <- case_data[["y_err"]]
     } else if (aberr_module == "translocations") {
       lambda_est_sd <- case_data[["Fg_err"]]
@@ -289,24 +296,29 @@ estimate_whole_body_delta <- function(case_data, fit_coeffs, fit_var_cov_mat,
 #' @param gamma Survival coefficient of irradiated cells.
 #' @param aberr_module Aberration module.
 #'
-#' @return List containing estimated doses data frame, estimated fraction of
-#' irradiated blood data frame, and AIC.
+#' @return List containing estimated doses data frame, observed fraction of cells scored
+#' which were irradiated, estimated fraction of irradiated blood data frame, AIC, and
+#' \code{conf_int_*} used.
 #' @export
 estimate_partial_body_dolphin <- function(case_data, fit_coeffs, fit_var_cov_mat,
                                           conf_int = 0.95, protracted_g_value = 1,
-                                          genome_factor = 1, gamma, aberr_module) {
+                                          genome_factor = 1, gamma,
+                                          aberr_module = c("dicentrics", "translocations", "micronuclei")) {
+  # Validate parameters
+  aberr_module <- match.arg(aberr_module)
 
   # Function to get the fisher information matrix
   get_cov_ZIP_ML <- function(lambda, pi, cells) {
     # For the parameters of a ZIP distribution (lambda and pi) where 1-p is the fraction of extra zeros
+    aux_denominator <- pi + (1 - pi) * exp(lambda)
     info_mat <- matrix(NA, nrow = 2, ncol = 2)
-    info_mat[1, 1] <- cells * pi * ((pi - 1) * exp(-lambda) / (1 - pi + pi * exp(-lambda)) + 1 / lambda)
-    info_mat[1, 2] <- cells * exp(-lambda) / (1 - pi + pi * exp(-lambda))
+    info_mat[1, 1] <- cells * pi * ((pi - 1) / aux_denominator + 1 / lambda)
+    info_mat[1, 2] <- cells / aux_denominator
     info_mat[2, 1] <- info_mat[1, 2]
-    info_mat[2, 2] <- cells * (1 - exp(-lambda)) / (pi * (1 - pi + pi * exp(-lambda)))
+    info_mat[2, 2] <- cells * (exp(lambda) - 1) / (pi * aux_denominator)
 
     # Solve system
-    cov_est <- base::solve(info_mat)
+    cov_est <- solve(info_mat)
 
     return(cov_est)
   }
@@ -362,6 +374,11 @@ estimate_partial_body_dolphin <- function(case_data, fit_coeffs, fit_var_cov_mat
     # Get the covariance matrix for the parameters of the ZIP distribution
     cov_est <- get_cov_ZIP_ML(lambda_est, pi_est, cells)
     lambda_est_sd <- sqrt(cov_est[1, 1])
+
+    est_metaphases_frac <- data.frame(
+      pi_estimate = pi_est,
+      pi_std_err = sqrt(cov_est[2, 2])
+    )
 
     # Get confidence interval of lambda estimates
     lambda_low <- lambda_est - stats::qnorm(conf_int + (1 - conf_int) / 2) * lambda_est_sd
@@ -450,6 +467,7 @@ estimate_partial_body_dolphin <- function(case_data, fit_coeffs, fit_var_cov_mat
   results_list <- list(
     est_doses = est_doses,
     est_frac = est_frac,
+    est_metaphases_frac = est_metaphases_frac,
     AIC = AIC,
     conf_int = conf_int
   )
@@ -471,9 +489,9 @@ estimate_partial_body_dolphin <- function(case_data, fit_coeffs, fit_var_cov_mat
 #' @param gamma Survival coefficient of irradiated cells.
 #' @param gamma_error Error of the survival coefficient of irradiated cells.
 #'
-#' @return List containing estimated mixing proportions data frame, estimated
-#' yields data frame, estimated doses data frame, estimated fraction of
-#' irradiated blood data frame, and AIC.
+#' @return List containing estimated mixing proportions data frame, estimated yields data
+#' frame, estimated doses data frame, estimated fraction of irradiated blood data frame,
+#' AIC, and \code{conf_int_*} used.
 #' @export
 estimate_hetero_mixed_poisson <- function(case_data, fit_coeffs, fit_var_cov_mat,
                                           conf_int = 0.95, protracted_g_value = 1,

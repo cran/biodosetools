@@ -124,7 +124,10 @@ calculate_model_stats <- function(model_data, fit_coeffs_vec, glm_results = NULL
 #'
 #' @return Data frame of parsed count data.
 #' @importFrom rlang .data
-prepare_maxlik_count_data <- function(count_data, model_formula, aberr_module) {
+prepare_maxlik_count_data <- function(count_data, model_formula, aberr_module = c("dicentrics", "translocations", "micronuclei")) {
+  # Validate parameters
+  aberr_module <- match.arg(aberr_module)
+
   if (ncol(count_data) > 3 & aberr_module != "translocations") {
     # Full distribution data
     dose_vec <- rep(
@@ -145,7 +148,7 @@ prepare_maxlik_count_data <- function(count_data, model_formula, aberr_module) {
         rep(nrow(count_data)) %>%
         as.numeric(),
       count_data %>%
-        .[, grep("C", names(.), value = T)] %>%
+        .[, grep("C", names(.), value = TRUE)] %>%
         as.matrix() %>%
         t() %>%
         as.numeric()
@@ -160,25 +163,19 @@ prepare_maxlik_count_data <- function(count_data, model_formula, aberr_module) {
         coeff_alpha = .data$dose * .data$coeff_C,
         coeff_beta = .data$dose^2 * .data$coeff_C
       ) %>%
-      dplyr::select(.data$aberr, .data$coeff_C, .data$coeff_alpha, .data$coeff_beta, .data$dose)
+      dplyr::select("aberr", "coeff_C", "coeff_alpha", "coeff_beta", "dose")
   } else {
     # Aggregated data only or if using translocations
     parsed_data <- count_data %>%
       dplyr::rename(
-        aberr = .data$X,
-        coeff_C = .data$N
+        aberr = "X",
+        coeff_C = "N"
       ) %>%
       dplyr::mutate(
         coeff_alpha = .data$D * .data$coeff_C,
         coeff_beta = .data$D^2 * .data$coeff_C
       ) %>%
-      dplyr::select(.data$aberr, .data$coeff_C, .data$coeff_alpha, .data$coeff_beta)
-  }
-
-  # Delete coeff_C column for models with no intercept
-  if (any(grep("no-int", model_formula))) {
-    parsed_data <- parsed_data %>%
-      dplyr::select(-.data$coeff_C)
+      dplyr::select("aberr", "coeff_C", "coeff_alpha", "coeff_beta")
   }
 
   # Return data frame
@@ -198,9 +195,12 @@ prepare_maxlik_count_data <- function(count_data, model_formula, aberr_module) {
 #' @param aberr_module Aberration module.
 #'
 #' @return List object containing GLM fit results.
-fit_glm_method <- function(count_data, model_formula, model_family = c("automatic", "poisson", "quasipoisson", "nb2"), fit_link = "identity", aberr_module) {
+fit_glm_method <- function(count_data, model_formula,
+                           model_family = c("automatic", "poisson", "quasipoisson", "nb2"), fit_link = "identity",
+                           aberr_module = c("dicentrics", "translocations", "micronuclei")) {
   # Validate parameters
   model_family <- match.arg(model_family)
+  aberr_module <- match.arg(aberr_module)
 
   # Store fit algorithm as a string
   fit_algorithm <- "glm"
@@ -371,9 +371,12 @@ fit_glm_method <- function(count_data, model_formula, model_family = c("automati
 #' @param aberr_module Aberration module.
 #'
 #' @return List object containing maxLik fit results.
-fit_maxlik_method <- function(data, model_formula, model_family = c("automatic", "poisson", "quasipoisson", "nb2"), fit_link, aberr_module) {
+fit_maxlik_method <- function(data, model_formula,
+                              model_family = c("automatic", "poisson", "quasipoisson", "nb2"), fit_link,
+                              aberr_module = c("dicentrics", "translocations", "micronuclei")) {
   # Validate parameters
   model_family <- match.arg(model_family)
+  aberr_module <- match.arg(aberr_module)
 
   # Store fit algorithm as a string
   fit_algorithm <- "constraint-maxlik-optimization"
@@ -392,8 +395,8 @@ fit_maxlik_method <- function(data, model_formula, model_family = c("automatic",
         coeff_alpha = .data$dose * .data$coeff_C,
         coeff_beta = .data$dose^2 * .data$coeff_C
       ) %>%
-      dplyr::rename(aberr = .data$X) %>%
-      dplyr::select(.data$aberr, .data$dose, .data$coeff_C, .data$coeff_alpha, .data$coeff_beta)
+      dplyr::rename(aberr = "X") %>%
+      dplyr::select("aberr", "dose", "coeff_C", "coeff_alpha", "coeff_beta")
   } else {
     data_aggr <- data
   }
@@ -404,18 +407,13 @@ fit_maxlik_method <- function(data, model_formula, model_family = c("automatic",
   fit_formula_tex <- parsed_model_formula$fit_formula_tex
   fit_formula <- stats::as.formula(fit_formula_raw)
 
-  if (any(grep("no-int", model_formula))) {
-    data_aggr <- data_aggr %>%
-      dplyr::select(-.data$coeff_C)
-  }
-
   # Find starting values for the mean
   mustart <- stats::lm(fit_formula, data = data_aggr)$coefficients
   if (mustart[1] <= 0) {
     mustart[1] <- 0.001
   }
 
-  # Black magic
+  # Extract the model frame from fitting formula
   mf <- match.call()
   m <- match(c("formula", "data"), names(mf), 0)
   mf <- mf[c(1, m)]
@@ -442,11 +440,10 @@ fit_maxlik_method <- function(data, model_formula, model_family = c("automatic",
 
   mf[[1]] <- as.name("model.frame")
   mf <- eval(mf, parent.frame())
-  mt <- attr(mf, "terms")
   mtX <- stats::terms(ffc, data = data)
-  X <- stats::model.matrix(mtX, mf)
   mtZ <- stats::terms(ffz, data = data)
   mtZ <- stats::terms(stats::update(mtZ, ~.), data = data)
+  X <- stats::model.matrix(mtX, mf)
   Z <- stats::model.matrix(mtZ, mf)
   Y <- stats::model.response(mf, "numeric")
 
@@ -456,16 +453,11 @@ fit_maxlik_method <- function(data, model_formula, model_family = c("automatic",
     intercept <- FALSE
   }
 
-  # Summarise black magic
-  ndic <- max(Y)
+  # Summarise model frame
+  # ndic <- max(Y)
   n <- length(Y)
-  linkstr <- "logit"
-  linkobj <- stats::make.link(linkstr)
-  linkinv <- linkobj$linkinv
+  npar <- NCOL(X)
   grad <- NULL
-  kx <- NCOL(X)
-  Y0 <- Y <= 0
-  Y1 <- Y > 0
 
   # Find starting values for the mean
   if (fit_link == "log") {
@@ -478,14 +470,19 @@ fit_maxlik_method <- function(data, model_formula, model_family = c("automatic",
     }
   }
 
-  # Model constraints
-  npar <- kx
+  # Model constraints (A theta + B > 0)
   if (intercept) {
-    A <- rbind(X, c(1, rep(0, npar - 1)))
-    B <- rep(0, n + 1)
+    A_constraint <- rbind(X, c(1, rep(0, npar - 1)))
+    B_constraint <- rep(0, n + 1)
   } else {
-    A <- X
-    B <- rep(0, n)
+    A_constraint <- X
+    B_constraint <- rep(0, n)
+  }
+
+  if (fit_link == "log") {
+    constraints <- NULL
+  } else {
+    constraints <- list(ineqA = A_constraint, ineqB = B_constraint)
   }
 
   # Loglikelihood function
@@ -501,12 +498,13 @@ fit_maxlik_method <- function(data, model_formula, model_family = c("automatic",
   }
 
   # Perform fitting
-  if (fit_link == "log") {
-    constraints <- NULL
-    fit_results <- maxLik::maxLik(logLik = loglik, grad = grad, start = mustart, constraints = constraints, iterlim = 1000)
-  } else {
-    fit_results <- maxLik::maxLik(logLik = loglik, grad = grad, start = mustart, constraints = list(ineqA = A, ineqB = B), iterlim = 1000)
-  }
+  fit_results <- maxLik::maxLik(
+    logLik = loglik,
+    grad = grad,
+    start = mustart,
+    constraints = constraints,
+    iterlim = 1000
+  )
   hess <- maxLik::hessian(fit_results)
 
   if (fit_link == "log") {
@@ -516,7 +514,6 @@ fit_maxlik_method <- function(data, model_formula, model_family = c("automatic",
   }
 
   # Summarise fit
-  fit_summary <- summary(fit_results)
   fit_var_cov_mat <- base::solve(-hess)
   fit_coeffs_vec <- fit_results$estimate
   fit_dispersion <- sum(((Y - mu)^2) / (mu * (n - npar)))
@@ -632,9 +629,13 @@ fit_maxlik_method <- function(data, model_formula, model_family = c("automatic",
 #'
 #' @return List object containing fit results either using GLM or maxLik optimization.
 #' @export
-fit <- function(count_data, model_formula, model_family, fit_link = "identity", aberr_module, algorithm = c("glm", "maxlik")) {
+fit <- function(count_data, model_formula,
+                model_family, fit_link = "identity",
+                aberr_module = c("dicentrics", "translocations", "micronuclei"),
+                algorithm = c("glm", "maxlik")) {
   # Validate parameters
   algorithm <- match.arg(algorithm)
+  aberr_module <- match.arg(aberr_module)
 
   if (algorithm == "maxlik") {
     # Perform fitting via maxlik method
@@ -654,7 +655,7 @@ fit <- function(count_data, model_formula, model_family, fit_link = "identity", 
       return(fit_results_list)
     },
     error = function(error_message) {
-      message("Warning: Problem with glm -> constraint ML optimization will be used instead")
+      cli::cli_alert_warning("Problem with {.fn glm} -> constraint ML optimization will be used instead")
 
       # Perform fitting via maxlik method
       prepared_data <- prepare_maxlik_count_data(count_data, model_formula, aberr_module)

@@ -148,15 +148,9 @@ test_that("processing case data works", {
   case_data <- calculate_aberr_table(
     data = case_data,
     type = "case",
-    assessment_u = 1
+    assessment_u = 1,
+    aberr_module = "dicentrics"
   )
-
-  # Specific to dicentrics/micronuclei
-  case_data <- case_data %>%
-    dplyr::rename(
-      y = .data$mean,
-      y_err = .data$std_err
-    )
 
   # Colnames validation
   case_data_cols <- colnames(case_data)
@@ -262,8 +256,8 @@ test_that("processing case data works", {
 
   expect_true(all(round(results_hetero$est_yields$yield1, 3) == c(0.714, 1.210, 1.705)))
   expect_true(all(round(results_hetero$est_yields$yield2, 3) == c(0, 0.010, 0.092)))
-  expect_true(all(round(results_hetero$est_doses$dose1, 3) ==   c(3.295, 4.215, 5.134)))
-  expect_true(all(round(results_hetero$est_doses$dose2, 3) ==   c(0, 0.241, 1.835)))
+  expect_true(all(round(results_hetero$est_doses$dose1, 3) == c(3.295, 4.215, 5.134)))
+  expect_true(all(round(results_hetero$est_doses$dose2, 3) == c(0, 0.241, 1.835)))
   expect_true(all(round(results_hetero$est_frac$estimate, 3) == c(0.578, 0.422)))
   expect_true(all(round(results_hetero$est_frac$std_err, 3) == c(0.127, 0.127)))
 

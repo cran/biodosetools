@@ -32,7 +32,7 @@ calculate_aberr_power <- function(data, aberr_prefix = "C", power = 1) {
   # Calculate aberration powers
   aberr <- numeric(length = ncol(aberr_data))
 
-  for (i in 1:ncol(aberr_data)) {
+  for (i in seq_len(ncol(aberr_data))) {
     aberr[i] <- sum(aberr_data[, i] * powers)
   }
 
@@ -69,9 +69,10 @@ calculate_aberr_u_value <- function(X, N, mean, var, assessment_u = 1) {
 
 #' @rdname calculate_aberr
 #' @importFrom rlang .data
-init_aberr_table <- function(data, type = c("count", "case"), aberr_module) {
+init_aberr_table <- function(data, type = c("count", "case"), aberr_module = c("dicentrics", "translocations", "micronuclei")) {
   # Validate parameters
   type <- match.arg(type)
+  aberr_module <- match.arg(aberr_module)
 
   if (type == "count") {
     data <- data %>%
@@ -83,18 +84,18 @@ init_aberr_table <- function(data, type = c("count", "case"), aberr_module) {
         DI = 0,
         u = 0
       ) %>%
-      dplyr::select(.data$D, .data$N, .data$X, dplyr::everything()) %>%
+      dplyr::select("D", "N", "X", dplyr::everything()) %>%
       dplyr::mutate(
         D = as.numeric(.data$D)
       ) %>%
       dplyr::mutate(
         dplyr::across(
-          .cols = c(.data$N, .data$X, grep("C", names(.), value = TRUE)),
+          .cols = c("N", "X", grep("C", names(.), value = TRUE)),
           .fns = as.integer
         )
       )
   } else if (type == "case") {
-    if (aberr_module == "dicentrics" | aberr_module == "micronuclei") {
+    if (aberr_module %in% c("dicentrics", "micronuclei")) {
       data <- data %>%
         dplyr::mutate(
           N = 0,
@@ -104,10 +105,10 @@ init_aberr_table <- function(data, type = c("count", "case"), aberr_module) {
           DI = 0,
           u = 0
         ) %>%
-        dplyr::select(.data$N, .data$X, dplyr::everything()) %>%
+        dplyr::select("N", "X", dplyr::everything()) %>%
         dplyr::mutate(
           dplyr::across(
-            .cols = c(.data$N, .data$X, grep("C", names(.), value = TRUE)),
+            .cols = c("N", "X", grep("C", names(.), value = TRUE)),
             .fns = as.integer
           )
         )
@@ -124,10 +125,10 @@ init_aberr_table <- function(data, type = c("count", "case"), aberr_module) {
           Fg = 0,
           Fg_err = 0
         ) %>%
-        dplyr::select(.data$N, .data$X, dplyr::everything()) %>%
+        dplyr::select("N", "X", dplyr::everything()) %>%
         dplyr::mutate(
           dplyr::across(
-            .cols = c(.data$N, .data$X, grep("C", names(.), value = TRUE)),
+            .cols = c("N", "X", grep("C", names(.), value = TRUE)),
             .fns = as.integer
           )
         )
@@ -142,15 +143,17 @@ init_aberr_table <- function(data, type = c("count", "case"), aberr_module) {
 #' @param data Count or case data.
 #' @param type Type of input data. Either "count" and "case".
 #' @param assessment_u Expected \eqn{u}-value of the assessment. For a Poisson distribution this should be unity.
+#' @param aberr_module Aberration module, required for \code{type = "case"}.
 #'
 #' @return Data frame containing cell count (\eqn{N}), aberrations (\eqn{X}),
 #' and other coefficients (dispersion index, \eqn{u}-value, ...), as well as
 #' raw count or case \code{data}.
 #' @export
 #' @importFrom rlang .data
-calculate_aberr_table <- function(data, type = c("count", "case"), assessment_u = 1) {
+calculate_aberr_table <- function(data, type = c("count", "case"), aberr_module = c("dicentrics", "translocations", "micronuclei"), assessment_u = 1) {
   # Validate parameters
   type <- match.arg(type)
+  aberr_module <- match.arg(aberr_module)
 
   if (type == "count") {
     data <- data %>%
@@ -170,10 +173,11 @@ calculate_aberr_table <- function(data, type = c("count", "case"), assessment_u 
           .fns = as.integer
         )
       ) %>%
-      dplyr::select(-.data$X2) %>%
-      dplyr::select(.data$D, .data$N, .data$X, dplyr::everything())
+      dplyr::select(-"X2") %>%
+      dplyr::select("D", "N", "X", dplyr::everything())
   } else if (type == "case") {
     data <- data %>%
+      dplyr::as_tibble() %>%
       dplyr::mutate(
         N = as.integer(rowSums(.[grep("C", names(.))])),
         X = calculate_aberr_power(., power = 1),
@@ -186,12 +190,29 @@ calculate_aberr_table <- function(data, type = c("count", "case"), assessment_u 
       ) %>%
       dplyr::mutate(
         dplyr::across(
-          .cols = c(.data$N, .data$X, grep("C", names(.), value = TRUE)),
+          .cols = c("N", "X", grep("C", names(.), value = TRUE)),
           .fns = as.integer
         )
       ) %>%
-      dplyr::select(-.data$X2, -.data$var) %>%
-      dplyr::select(.data$N, .data$X, dplyr::everything())
+      dplyr::select(-"X2", -"var") %>%
+      dplyr::select("N", "X", dplyr::everything())
+
+    # Rename mean and std_err columns
+    if (aberr_module %in% c("dicentrics", "micronuclei")) {
+      data <- data %>%
+        dplyr::select(
+          "N", "X", dplyr::matches("^C[0-9]+$"),
+          "y" = "mean", "y_err" = "std_err",
+          "DI", "u"
+        )
+    } else if (aberr_module == "translocations") {
+      data <- data %>%
+        dplyr::select(
+          "N", "X", dplyr::matches("^C[0-9]+$"),
+          "Fp" = "mean", "Fp_err" = "std_err",
+          "DI", "u"
+        )
+    }
   }
 
   return(data)

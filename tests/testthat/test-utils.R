@@ -7,6 +7,24 @@ test_that("to_title works", {
   )
 })
 
+test_that("match_names works", {
+  # Correct name matching
+  expect_no_error(
+    match_names(
+      c("whole", "hetero"),
+      c("whole", "partial", "hetero")
+    )
+  )
+
+  # Incorrect name matching
+  expect_error(
+    match_names(
+      c("whole-body"),
+      c("whole", "partial", "hetero")
+    )
+  )
+})
+
 test_that("names_from_model_formula works", {
   # Correct argument matching
   expect_error(names_from_model_formula("lon-quod"))
@@ -20,14 +38,6 @@ test_that("names_from_model_formula works", {
     names_from_model_formula("lin"),
     c("coeff_C", "coeff_alpha")
   )
-  expect_equal(
-    names_from_model_formula("lin-quad-no-int"),
-    c("coeff_alpha", "coeff_beta")
-  )
-  expect_equal(
-    names_from_model_formula("lin-no-int"),
-    c("coeff_alpha")
-  )
 })
 
 test_that("parse_model_formula works", {
@@ -37,21 +47,24 @@ test_that("parse_model_formula works", {
   # Expected names
   parsed_model_formula <- parse_model_formula("lin-quad")
   expect_equal(parsed_model_formula$fit_formula_raw, "aberr ~ -1 + coeff_C + coeff_alpha + coeff_beta")
-  expect_equal(parsed_model_formula$fit_formula_tex, "Y = C + \\alpha D + \\beta D^{2}")
+  expect_equal(parsed_model_formula$fit_formula_tex, "\\lambda = C + \\alpha D + \\beta D^{2}")
 
   parsed_model_formula <- parse_model_formula("lin")
   expect_equal(parsed_model_formula$fit_formula_raw, "aberr ~ -1 + coeff_C + coeff_alpha")
-  expect_equal(parsed_model_formula$fit_formula_tex, "Y = C + \\alpha D")
-
-  parsed_model_formula <- parse_model_formula("lin-quad-no-int")
-  expect_equal(parsed_model_formula$fit_formula_raw, "aberr ~ -1 + coeff_alpha + coeff_beta")
-  expect_equal(parsed_model_formula$fit_formula_tex, "Y = \\alpha D + \\beta D^{2}")
-
-  parsed_model_formula <- parse_model_formula("lin-no-int")
-  expect_equal(parsed_model_formula$fit_formula_raw, "aberr ~ -1 + coeff_alpha")
-  expect_equal(parsed_model_formula$fit_formula_tex, "Y = \\alpha D")
+  expect_equal(parsed_model_formula$fit_formula_tex, "\\lambda = C + \\alpha D")
 })
 
+
+# Markdown utils ----
+
+test_that("load_rmd_report works", {
+  report_names <- c("estimation-report-docx.Rmd", "estimation-report-pdf.Rmd", "fitting-report-docx.Rmd", "fitting-report-pdf.Rmd")
+
+  # Expected ouputs
+  for (report in report_names) {
+    expect_true(file.exists(load_rmd_report(report)))
+  }
+})
 
 # Formatting fixes ----
 
@@ -115,17 +128,14 @@ test_that("fix_count_data_names for case data works", {
   case_data <- calculate_aberr_table(
     data = case_data,
     type = "case",
-    assessment_u = 1
+    assessment_u = 1,
+    aberr_module = "translocations"
   )
 
   # Specific to translocations
   genome_factor <- 0.585
 
   case_data <- case_data %>%
-    dplyr::rename(
-      Fp = .data$mean,
-      Fp_err = .data$std_err
-    ) %>%
     dplyr::mutate(
       Xc = dplyr::case_when(
         # "sigurdson" ~ calculate_trans_rate_sigurdson(...),
