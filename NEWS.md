@@ -1,3 +1,23 @@
+# biodosetools 3.6.2
+
+* New module for criticality accidents dose estimation.
+* New module for calculating chacaracteristic limits.
+* New module for interlaboratory comparisons.
+
+## Improvements
+* Now multiple dose calculations can be done at the same time.
+* .xlsx save.
+* Error message when missing fields
+* Error message when there are no C2 cells for partial body assessment.
+* Separated micronucleus assay.
+
+
+# biodosetools 3.6.1.1
+
+* Updated citation details for {biodosetools} after publication in Int J Radiat Biol (doi:10.1080/09553002.2023.2176564).
+* Improvements in `deploy-shiny.yml` CI workflow.
+* Added `dev/shiny-redirect` shiny app to redirect `biodosetools-v3` at shinyapps.io to version hosted by Bundesamt für Strahlenschutz.
+
 # biodosetools 3.6.1
 
 * Removed {pkgload} and {htmltools} as package dependencies.

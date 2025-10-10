@@ -8,6 +8,19 @@
 #' @noRd
 mod_fitting_counts_hot_server <- function(id, aberr_module) {
   moduleServer(id, function(input, output, session) {
+
+     observeEvent(input$load_count_data_check, {
+       if (input$load_count_data_check == TRUE) {
+         updateAwesomeCheckbox(session, inputId = "use_aggr_count_data_check", value = FALSE)
+       }
+      })
+     observeEvent(input$use_aggr_count_data_check, {
+       if (input$use_aggr_count_data_check == TRUE) {
+         updateAwesomeCheckbox(session, inputId = "load_count_data_check", value = FALSE)
+       }
+      })
+
+
     # Reset table ----
     table_reset <- reactiveValues(value = 0)
 
@@ -158,18 +171,26 @@ mod_fitting_counts_hot_server <- function(id, aberr_module) {
 
       hot <- changed_data() %>%
         rhandsontable(
-          width = (70 + num_cols * 50),
+          width = (80 + num_cols * 60),
           height = "100%",
           colHeaders = col_headers
         ) %>%
-        hot_cols(colWidths = 50) %>%
-        hot_col(c(1), format = "0.000", colWidths = 60) %>%
-        hot_col(c(2), colWidths = 60) %>%
+        hot_cols(colWidths = 50, halign = "htCenter") %>%
+        hot_col(c(num_cols), format = "0", colWidths = 60) %>%
+        hot_col(c(num_cols-1), format = "0", colWidths = 60) %>%
+        hot_col(c(num_cols-2), format = "0.0", colWidths = 60) %>%
+
         hot_table(highlightCol = TRUE, highlightRow = TRUE)
 
       if (num_cols > 3) {
         hot <- hot %>%
           hot_col(c(2, 3, seq(num_cols - 3, num_cols, 1)), readOnly = TRUE) %>%
+          hot_col(c(num_cols), format = "0.000", colWidths = 60) %>%
+          hot_col(c(num_cols-1), format = "0.000", colWidths = 60) %>%
+          hot_col(c(num_cols-2), format = "0.000", colWidths = 60) %>%
+          hot_col(c(num_cols-3), format = "0.000", colWidths = 60) %>%
+          hot_col(c(2), colWidths = 60) %>%
+          hot_col(c(3), format = "0") %>%
           hot_col(num_cols, renderer = "
            function (instance, td, row, col, prop, value, cellProperties) {
              Handsontable.renderers.NumericRenderer.apply(this, arguments);
@@ -216,6 +237,7 @@ mod_fitting_results_server <- function(id, aberr_module, genome_factor = NULL) {
       })
 
       if (aberr_module == "translocations") {
+        req(input$frequency_select, hot_to_r(input$chromosome_table), genome_factor$genome_factor())
         frequency_select <- input$frequency_select
         chromosome_table <- hot_to_r(input$chromosome_table)
         genome_factor <- genome_factor$genome_factor()
@@ -261,13 +283,20 @@ mod_fitting_results_server <- function(id, aberr_module, genome_factor = NULL) {
         progress$set(detail = "Plotting fitting results", value = 2 / 4)
         gg_curve <- plot_fit_dose_curve(
           fit_results_list,
-          aberr_name
+          aberr_name,
+          place = "UI"
+        )
+        gg_curve_save <- plot_fit_dose_curve(
+          fit_results_list,
+          aberr_name,
+          place = "save"
         )
 
         # Make list of results to return
         results_list <- fit_results_list
         results_list[["fit_raw_data"]] <- hot_to_r(input$count_data_hot)
         results_list[["gg_curve"]] <- gg_curve
+        results_list[["gg_curve_save"]] <- gg_curve_save
 
         # Additional results if using translocations
         if (aberr_module == "translocations") {
@@ -302,7 +331,7 @@ mod_fitting_results_server <- function(id, aberr_module, genome_factor = NULL) {
             text = input$irr_cond_whole_blood
           ),
           temperature = c(
-            label = "Temperature",
+            label = "Temperature (\u00B0C) during irradiation",
             text = input$irr_cond_temperature
           ),
           time = c(
@@ -312,7 +341,24 @@ mod_fitting_results_server <- function(id, aberr_module, genome_factor = NULL) {
           beam_characteristics = c(
             label = "Beam characteristics",
             text = input$irr_cond_beam_characteristics
+          ),
+          scoring_method = c(
+            label = "Scoring method",
+            text = input$scoring_method
+          ),
+          origin_curve = c(
+            label = "Origin of the curve",
+            text = input$origin_curve
+          ),
+          cal_air_water = c(
+            label = "Calibration of the source",
+            text = input$cal_air_water
+          ),
+          irrad_air_water = c(
+            label = "Irradiation medium",
+            text = input$irrad_air_water
           )
+
         )
 
         cli::cli_alert_success("Fitting performed successfully")
@@ -356,7 +402,7 @@ mod_fitting_results_server <- function(id, aberr_module, genome_factor = NULL) {
           width = (num_cols * 70),
           height = "100%"
         ) %>%
-        hot_cols(colWidths = 70)
+        hot_cols(colWidths = 70, halign = "htCenter")
     })
 
     output$fit_coeffs <- renderRHandsontable({
@@ -375,7 +421,7 @@ mod_fitting_results_server <- function(id, aberr_module, genome_factor = NULL) {
           height = "100%"
         ) %>%
         hot_cols(colWidths = 100) %>%
-        hot_cols(halign = "htRight")
+        hot_cols(halign = "htCenter")
     })
 
     output$fit_var_cov_mat <- renderRHandsontable({
@@ -395,7 +441,7 @@ mod_fitting_results_server <- function(id, aberr_module, genome_factor = NULL) {
           height = "100%"
         ) %>%
         hot_cols(colWidths = 100) %>%
-        hot_cols(halign = "htRight")
+        hot_cols(halign = "htCenter")
     })
 
     output$fit_cor_mat <- renderRHandsontable({
@@ -413,7 +459,7 @@ mod_fitting_results_server <- function(id, aberr_module, genome_factor = NULL) {
           width = (50 + num_cols * 100),
           height = "100%"
         ) %>%
-        hot_cols(colWidths = 100) %>%
+        hot_cols(colWidths = 100, halign = "htCenter") %>%
         hot_cols(format = "0.000")
     })
 
@@ -433,11 +479,14 @@ mod_fitting_results_server <- function(id, aberr_module, genome_factor = NULL) {
       filename = function() {
         paste("count-data-", Sys.Date(), input$save_count_data_format, sep = "")
       },
-      content = function(file) {
+      content = function(file, verbose = TRUE) {
         if (input$save_count_data_format == ".csv") {
           utils::write.csv(hot_to_r(input$count_data_hot), file, row.names = FALSE)
         } else if (input$save_count_data_format == ".tex") {
-          print(xtable::xtable(hot_to_r(input$count_data_hot)), type = "latex", file)
+          if(verbose){
+            print(xtable::xtable(hot_to_r(input$count_data_hot)), type = "latex", file)
+          }
+
         }
       }
     )
@@ -454,6 +503,7 @@ mod_fitting_results_server <- function(id, aberr_module, genome_factor = NULL) {
 
           # Add additional values to list
           results_list[["gg_curve"]] <- NULL
+          results_list[["gg_curve_save"]] <- NULL
           results_list[["biodosetools_version"]] <- utils::packageVersion(pkg = "biodosetools")
 
           # Export RDS file
@@ -469,7 +519,7 @@ mod_fitting_results_server <- function(id, aberr_module, genome_factor = NULL) {
       },
       content = function(file) {
         ggplot2::ggsave(
-          plot = data()[["gg_curve"]], filename = file,
+          plot = data()[["gg_curve_save"]], filename = file,
           width = 6, height = 4.5, dpi = 96,
           device = gsub("\\.", "", input$save_plot_format)
         )
