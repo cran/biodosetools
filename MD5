@@ -1,9 +1,9 @@
-9c851893d1b203dd182a620ad190eda1 *DESCRIPTION
+4bdbcbc56dfaf5c28b9b1cde2859ca88 *DESCRIPTION
 6956d83b3edefc802f5b007e69ae98f9 *NAMESPACE
 1ccfee562eb4239f14a128f322951733 *NEWS.md
 ad3358237a1c4ff15e0c660634745516 *R/app_config.R
 f8681dc6aa39bf46d9e8f78208e3a28f *R/app_server.R
-66d92bdc1acc2313f8f96c4b6344a27b *R/app_ui.R
+428ef8b31912a261d0c35eaf55a78fa1 *R/app_ui.R
 8be0e1c96511e97575b8cff0eb424302 *R/biodosetools-package.R
 bed136690b3d6b5ab26ae814c2979e00 *R/calcs_aberrations.R
 12a2f6ad984b11a2ae80b2bf18b6f6eb *R/calcs_characteristic_limits.R
@@ -125,7 +125,7 @@ dd31e6518071bc2cf422dc874c40f676 *inst/doc/dicent-mixed.R
 3eb850a22f3684f0d5a1442fee2df320 *inst/doc/dicent-mixed.html
 029d622a8ea9b47cda75cdb003f6e0d1 *inst/doc/interlab.R
 2f3d1c7d77e1a26be81f16fd28e03287 *inst/doc/interlab.Rmd
-f349b2fd47137524b9eae9b00affbd79 *inst/doc/interlab.html
+bbaf890f06f3b8c9889a361feab1a49c *inst/doc/interlab.html
 ce92f4b43ee6d2bc22861ed326181d35 *inst/doc/micro-estimation.R
 cc61e7640ed908a264436d0ee8ba56e2 *inst/doc/micro-estimation.Rmd
 8b226dbad5a88c3faaae7434e12692f8 *inst/doc/micro-estimation.html
