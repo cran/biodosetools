@@ -1,4 +1,4 @@
-4bdbcbc56dfaf5c28b9b1cde2859ca88 *DESCRIPTION
+bb68baba4ec8b6bae0d100ab504b402a *DESCRIPTION
 6956d83b3edefc802f5b007e69ae98f9 *NAMESPACE
 1ccfee562eb4239f14a128f322951733 *NEWS.md
 ad3358237a1c4ff15e0c660634745516 *R/app_config.R
@@ -31,7 +31,7 @@ f0c3df9d5db1069ee624afc3435c14c0 *R/mod_mixed_server.R
 5e8a067868c47941b6514d8c5e9a27be *R/mod_mixed_ui.R
 2b7817807ce58d5e995826d03c3787b3 *R/mod_trans_server.R
 cea5e288da14e5d89727ba1c9842b7a1 *R/run_app.R
-8d79070a3d9842966346cf458284581e *R/utils-md.R
+4a880b6ac9c4b3c510e0672876e112a3 *R/utils-md.R
 b56ff2b193ecba52f9ec7f3b10cca008 *R/utils-pipe.R
 07d584f5b88ea7f3a4fec562869ca8ea *R/utils.R
 cdc0ea6e13c2926df114c8c4bd0dc9c4 *R/utils_estimation.R
@@ -125,7 +125,7 @@ dd31e6518071bc2cf422dc874c40f676 *inst/doc/dicent-mixed.R
 3eb850a22f3684f0d5a1442fee2df320 *inst/doc/dicent-mixed.html
 029d622a8ea9b47cda75cdb003f6e0d1 *inst/doc/interlab.R
 2f3d1c7d77e1a26be81f16fd28e03287 *inst/doc/interlab.Rmd
-bbaf890f06f3b8c9889a361feab1a49c *inst/doc/interlab.html
+2703e5b90f1f1e614d231625f020904a *inst/doc/interlab.html
 ce92f4b43ee6d2bc22861ed326181d35 *inst/doc/micro-estimation.R
 cc61e7640ed908a264436d0ee8ba56e2 *inst/doc/micro-estimation.Rmd
 8b226dbad5a88c3faaae7434e12692f8 *inst/doc/micro-estimation.html

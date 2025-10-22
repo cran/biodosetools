@@ -1,6 +1,6 @@
 Package: biodosetools
 Title: 'shiny' Application for Biological Dosimetry
-Version: 3.7
+Version: 3.7.1
 Authors@R: 
     c(person(given = "Alfredo",
            family = "Hernández",
@@ -41,7 +41,7 @@ Suggests: testthat (>= 3.0.0), covr, knitr, kableExtra, markdown,
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2025-10-14 15:02:47 UTC; anna_
+Packaged: 2025-10-22 07:51:59 UTC; anna_
 Author: Alfredo Hernández [aut] (ORCID:
     <https://orcid.org/0000-0002-2660-4545>),
   Anna Frances-Abellan [aut, cre] (ORCID:
@@ -50,4 +50,4 @@ Author: Alfredo Hernández [aut] (ORCID:
   Pere Puig [aut] (ORCID: <https://orcid.org/0000-0002-6607-9642>)
 Maintainer: Anna Frances-Abellan <anna.frances@uab.cat>
 Repository: CRAN
-Date/Publication: 2025-10-14 22:30:02 UTC
+Date/Publication: 2025-10-22 08:10:02 UTC
