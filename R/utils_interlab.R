@@ -28,9 +28,9 @@ summary_curve_tables <- function(num_labs, list_lab_names, all_rds) {
       Sample = all_rds[[L]]$case_data$ID,
       N = all_rds[[L]]$case_data$N,
       dics = all_rds[[L]]$case_data$X,
-      est = all_rds[[L]]$est_doses_whole$estimate,
-      lwr = all_rds[[L]]$est_doses_whole$lower,
-      upr = all_rds[[L]]$est_doses_whole$upper,
+      est = if(!is.null(all_rds[[L]]$est_doses_partial)) all_rds[[L]]$est_doses_partial$estimate else all_rds[[L]]$est_doses_whole$estimate,
+      lwr = if(!is.null(all_rds[[L]]$est_doses_partial)) all_rds[[L]]$est_doses_partial$lower else all_rds[[L]]$est_doses_whole$lower,
+      upr = if(!is.null(all_rds[[L]]$est_doses_partial)) all_rds[[L]]$est_doses_partial$upper else all_rds[[L]]$est_doses_whole$upper,
       y = if(is.null(all_rds[[L]]$case_data$Fg)) all_rds[[L]]$case_data$y else all_rds[[L]]$case_data$Fg,
       y.err = if(is.null(all_rds[[L]]$case_data$Fg_err)) all_rds[[L]]$case_data$y_err else all_rds[[L]]$case_data$Fg_err,
       rad_qual = if(is.null(as.character(all_rds[[L]]$irr_conds$radiation_quality[2]))) NA else as.character(all_rds[[L]]$irr_conds$radiation_quality[2]),
@@ -41,10 +41,10 @@ summary_curve_tables <- function(num_labs, list_lab_names, all_rds) {
       origin_curve = if(is.null(as.character(all_rds[[L]]$irr_conds$origin_curve[2]))) NA else as.character(all_rds[[L]]$irr_conds$origin_curve[2]),
       C = all_rds[[L]]$fit_coeffs["coeff_C", "estimate"],
       alpha = all_rds[[L]]$fit_coeffs["coeff_alpha", "estimate"],
-      beta = all_rds[[L]]$fit_coeffs["coeff_beta", "estimate"],
+      beta = if(nrow(all_rds[[L]]$fit_coeffs)< 3) NA else all_rds[[L]]$fit_coeffs["coeff_beta", "estimate"],
       SE_C = all_rds[[L]]$fit_coeffs["coeff_C", "std.error"],
       SE_alpha = all_rds[[L]]$fit_coeffs["coeff_alpha", "std.error"],
-      SE_beta = all_rds[[L]]$fit_coeffs["coeff_beta", "std.error"],
+      SE_beta = if(nrow(all_rds[[L]]$fit_coeffs)< 3) NA else all_rds[[L]]$fit_coeffs["coeff_beta", "std.error"],
       DI = all_rds[[L]]$case_data$DI,
       u  = all_rds[[L]]$case_data$u,
       max_dose_curve = ifelse (length(as.numeric(all_rds[[L]]$max_dose_curve)) == 0, "", as.numeric(all_rds[[L]]$max_dose_curve))
@@ -149,7 +149,7 @@ plot_interlab_v2 <- function(zscore, select_method, sum_table, place) {
         ) +
       if (place == "save") {
         list(
-          ggplot2::labs(caption = "Created with Biodosetools version 3.6.2"),
+          ggplot2::labs(caption = "Created with Biodosetools"),
           ggplot2::theme(plot.caption = ggplot2::element_text(size = 8, colour = "black", hjust = 1))
         )
       } else {
@@ -215,7 +215,7 @@ plot_zscore_all <- function(zscore, select_method, place) {
     )+
     if (place == "save") {
       list(
-        ggplot2::labs(caption = "Created with Biodosetools version 3.6.2"),
+        ggplot2::labs(caption = "Created with Biodosetools"),
         ggplot2::theme(plot.caption = ggplot2::element_text(size = 8, colour = "black", hjust = 1))
       )
     } else {
@@ -281,7 +281,7 @@ plot_deviation_all <- function(zscore, select_method, place) {
     )+
     if (place == "save") {
       list(
-        ggplot2::labs(caption = "Created with Biodosetools version 3.6.2"),
+        ggplot2::labs(caption = "Created with Biodosetools"),
         ggplot2::theme(plot.caption = ggplot2::element_text(size = 8, colour = "black", hjust = 1))
       )
     } else {
@@ -352,7 +352,7 @@ plot_interlab_deviation <- function(zscore, sum_table, place) {
       )+
       if (place == "save") {
         list(
-          ggplot2::labs(caption = "Created with Biodosetools version 3.6.2"),
+          ggplot2::labs(caption = "Created with Biodosetools"),
           ggplot2::theme(plot.caption = ggplot2::element_text(size = 8, colour = "black", hjust = 1))
         )
       } else {
@@ -377,11 +377,11 @@ plot_triage_interlab <- function(line_triage, sum_table, place) {
 
   plot_triage_interlab <- list()
 
-  if (any(is.na(sum_table[, c("Sample", "estimate", "lower", "upper")]))){
-    NULL
-  }else{
+  #if (any(is.na(sum_table[, c("Sample", "estimate", "lower", "upper")]))){
+  #  NULL
+  #}else{
   all_data <- data.frame(
-    labs = 1:length(unique(sum_table[["Lab"]])),
+    labs = sum_table[["Lab"]],
     sample = sum_table[["Sample"]],
     doses = sum_table[["estimate"]],
     lower = sum_table[["lower"]],
@@ -390,7 +390,6 @@ plot_triage_interlab <- function(line_triage, sum_table, place) {
 
  for (i in unique(sum_table$Sample)){
    data <- subset(all_data, sample == i)
-
    background <- data.frame(
      ymin = c(0, 1, 2),
      ymax = c(1, 2, Inf),
@@ -429,7 +428,7 @@ plot_triage_interlab <- function(line_triage, sum_table, place) {
      ) +
      # Ensure X-axis does not display decimals
      scale_x_discrete(
-       labels = sum_table[["Lab"]]
+       labels = data$labs
      ) +
      #Labels and theme
      labs(
@@ -445,7 +444,7 @@ plot_triage_interlab <- function(line_triage, sum_table, place) {
      )+
      if (place == "save") {
        list(
-         ggplot2::labs(caption = "Created with Biodosetools version 3.6.2"),
+         ggplot2::labs(caption = "Created with Biodosetools"),
          ggplot2::theme(plot.caption = ggplot2::element_text(size = 8, colour = "black", hjust = 1))
        )
      } else {
@@ -454,7 +453,8 @@ plot_triage_interlab <- function(line_triage, sum_table, place) {
  }
 
   return(plot_triage_interlab)
-}}
+ # }
+}
 
 
 #' Plot curves
@@ -519,7 +519,7 @@ curves_plot <- function(dat, curve, curve_type = "lin_quad", place) {
           theme( plot.title = element_text(size = 15, face = "bold", color = "black", hjust = 0.5))+
           if (place == "save") {
             list(
-              ggplot2::labs(caption = "Created with Biodosetools version 3.6.2"),
+              ggplot2::labs(caption = "Created with Biodosetools"),
               ggplot2::theme(plot.caption = ggplot2::element_text(size = 8, colour = "black", hjust = 1))
             )
           } else {
@@ -585,7 +585,7 @@ bar_plots <- function(dat, curve, place) {
       }
       if (place == "save") {
         mtext(
-          "Created with Biodosetools version 3.6.2",
+          "Created with Biodosetools",
           side = 1,
           line = 7, #dist from x
           adj = 1,
@@ -611,9 +611,9 @@ bar_plots <- function(dat, curve, place) {
 #' @export
 
 yield_boxplot <- function(dat, place) {
-  if (any(is.na(dat[, 10]))){
-    NULL
-  }else{
+  #if (any(is.na(dat[, 10]))){
+  #  NULL
+ # }else{
      if(any(dat[, "Module"] == "translocations")){
        yield <- dat[, c("Lab","Sample", "Fg")]
        ylab <- "translocations/cell"
@@ -649,7 +649,7 @@ yield_boxplot <- function(dat, place) {
     legend("topright", legend = names(lab_colors), col = lab_colors, pch = 19, title = "Lab")
     if (place == "save") {
       mtext(
-        "Created with Biodosetools version 3.6.2",
+        "Created with Biodosetools",
         side = 1,
         line = 2,
         adj = 1,
@@ -659,7 +659,8 @@ yield_boxplot <- function(dat, place) {
     }
     # Restore
     on.exit(par(old))
-  }}
+ # }
+  }
 
 #' Boxplot dose estimates
 #'
@@ -671,9 +672,9 @@ yield_boxplot <- function(dat, place) {
 #' @export
 
 dose_boxplot <- function(dat, place) {
-  if (any(is.na(dat[, "estimate"]))){
-    NULL
-  }else{
+  #if (any(is.na(dat[, "estimate"]))){
+   # NULL
+  #}else{
     dose.est <- dat[, c("Lab","Sample", "estimate")]
 
     lab_colors <- setNames(rainbow(length(unique(dose.est$Lab))), unique(dose.est$Lab))
@@ -696,7 +697,7 @@ dose_boxplot <- function(dat, place) {
     legend("topright", legend = names(lab_colors), col = lab_colors, pch = 19, title = "Lab")
     if (place == "save") {
       mtext(
-        "Created with Biodosetools version 3.6.2",
+        "Created with Biodosetools",
         side = 1,
         line = 2,
         adj = 1,
@@ -706,7 +707,8 @@ dose_boxplot <- function(dat, place) {
     }
     # Restore
     on.exit(par(old))
-  }}
+  }
+  #}
 
 #' U-test
 #'
@@ -718,9 +720,9 @@ dose_boxplot <- function(dat, place) {
 #' @export
 
 u_test_plot <- function(dat, place) {
-  if (any(is.na(dat[, "u"]))){
-    NULL
-  }else{
+ # if (any(is.na(dat[, "u"]))){
+#    NULL
+ # }else{
   U.data <- dat[, c("Lab","Sample", "u")]
 
   lab_colors <- setNames(rainbow(length(unique(U.data$Lab))), unique(U.data$Lab))
@@ -744,7 +746,7 @@ u_test_plot <- function(dat, place) {
   abline(h = c(-1.96, 1.96), col = "red")
   if (place == "save") {
     mtext(
-      "Created with Biodosetools version 3.6.2",
+      "Created with Biodosetools",
       side = 1,
       line = 2,
       adj = 1,
@@ -754,7 +756,8 @@ u_test_plot <- function(dat, place) {
   }
   # Restore
   on.exit(par(old))
-}}
+#}
+}
 
 #' Dispersion index
 #'
@@ -766,9 +769,9 @@ u_test_plot <- function(dat, place) {
 #' @export
 
 DI_plot <- function(dat, place) {
-  if (any(is.na(dat[, "DI"]))){
-    NULL
-  }else{
+#  if (any(is.na(dat[, "DI"]))){
+#    NULL
+#  }else{
     DI.data <- dat[, c("Lab","Sample", "DI")]
 
     lab_colors <- setNames(rainbow(length(unique(DI.data$Lab))), unique(DI.data$Lab))
@@ -791,7 +794,7 @@ DI_plot <- function(dat, place) {
     abline(h = c(1), col = "red")
     if (place == "save") {
       mtext(
-        "Created with Biodosetools version 3.6.2",
+        "Created with Biodosetools",
         side = 1,
         line = 2,
         adj = 1,
@@ -801,7 +804,8 @@ DI_plot <- function(dat, place) {
     }
     # Restore
     on.exit(par(old))
-}}
+}
+#}
 
 # #' Deviation from reference
 # #'
