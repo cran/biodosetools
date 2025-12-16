@@ -1,4 +1,4 @@
-a9861a584772b89c543f2dd8d67a2c07 *DESCRIPTION
+64e6d86f507f503399a287017fca8660 *DESCRIPTION
 6956d83b3edefc802f5b007e69ae98f9 *NAMESPACE
 1ef4536bb064761b2d3057ff5b523d9b *NEWS.md
 ad3358237a1c4ff15e0c660634745516 *R/app_config.R
@@ -9,7 +9,7 @@ bed136690b3d6b5ab26ae814c2979e00 *R/calcs_aberrations.R
 12a2f6ad984b11a2ae80b2bf18b6f6eb *R/calcs_characteristic_limits.R
 d87f04ec7649d555ea6b4e3950c15d3e *R/calcs_estimation.R
 058c2fee035ce53fe61c1958b300ac5b *R/calcs_fitting.R
-20188c4d1cfdd3d1b285eef291d3d624 *R/calcs_interlab.R
+05c6869646fd193c19ee37aa3baac8e9 *R/calcs_interlab.R
 7ad64e20177bb4dcafea314e80a7f39f *R/calcs_mixed.R
 18077e42851c812f2ff15bb1c5aa9157 *R/calcs_translocations.R
 26d4ee92810c7160a878a5b1af64cf98 *R/data.R
@@ -20,10 +20,10 @@ d87f04ec7649d555ea6b4e3950c15d3e *R/calcs_estimation.R
 61b08c76fa661741e979840c33cd57fa *R/mod_estimation_trans_ui.R
 7ddedbaf94b5836619c5a0f15daac71a *R/mod_fitting_dicent_ui.R
 37bcb26778e8ce14c0da230ec3b7a984 *R/mod_fitting_micro_ui.R
-f851d13a768b92083b7f4ffe57b03dae *R/mod_fitting_server.R
+27685bf93b13a04f4e3af8a9a0a80e03 *R/mod_fitting_server.R
 bf7a853e0fdbcbe3509ad8693f780aa5 *R/mod_fitting_trans_ui.R
 a616c9dc38355415076ce72dee7a5044 *R/mod_help_server.R
-3b77ebc6a04b5418e2625e41a124cf40 *R/mod_interlab_server.R
+51697699d61a9bc9e6626699b3565b85 *R/mod_interlab_server.R
 80f4bf1f83570ca0d9d5dc7028061df7 *R/mod_interlab_ui.R
 d7127c115878bcd64e86e84682dfc5b3 *R/mod_limits_dicent_ui.R
 9835f360308e6d47a278cb8a0de1bdba *R/mod_limits_server.R
@@ -125,13 +125,13 @@ dd31e6518071bc2cf422dc874c40f676 *inst/doc/dicent-mixed.R
 3eb850a22f3684f0d5a1442fee2df320 *inst/doc/dicent-mixed.html
 029d622a8ea9b47cda75cdb003f6e0d1 *inst/doc/interlab.R
 2f3d1c7d77e1a26be81f16fd28e03287 *inst/doc/interlab.Rmd
-222e9f1af95d70c059e586e0bb1287ed *inst/doc/interlab.html
+d6efa9d3df264248c9fdd4dfd0eabf2b *inst/doc/interlab.html
 ce92f4b43ee6d2bc22861ed326181d35 *inst/doc/micro-estimation.R
 cc61e7640ed908a264436d0ee8ba56e2 *inst/doc/micro-estimation.Rmd
 8b226dbad5a88c3faaae7434e12692f8 *inst/doc/micro-estimation.html
-6b74afc2530fe237da8fd9c81a72d85a *inst/doc/micro-fitting.R
-5b8ca1b5977c82c94729631202c79411 *inst/doc/micro-fitting.Rmd
-fe87fa878058f20744df4dac776fad64 *inst/doc/micro-fitting.html
+76a7cee27a975f6e7a7ada00f485dcfb *inst/doc/micro-fitting.R
+3394c56ebb0981ec9718d580dba7bd95 *inst/doc/micro-fitting.Rmd
+00ad0721925ec66aa4d09ee8f15a0a61 *inst/doc/micro-fitting.html
 2eba36ec7da6138bf11834cdc35cff54 *inst/doc/trans-estimation.R
 f790db77ce3ecdb381d793e5dbdbb3db *inst/doc/trans-estimation.Rmd
 7d559f8d58f238eba8b126c745a39014 *inst/doc/trans-estimation.html
@@ -312,6 +312,6 @@ a85335c407999b06089e82fdcbe6e7aa *vignettes/figures/screenshot-translocations-es
 16dd97c941a44cd822a18d7f265cf578 *vignettes/figures/screenshot-translocations-fit-04.png
 2f3d1c7d77e1a26be81f16fd28e03287 *vignettes/interlab.Rmd
 cc61e7640ed908a264436d0ee8ba56e2 *vignettes/micro-estimation.Rmd
-5b8ca1b5977c82c94729631202c79411 *vignettes/micro-fitting.Rmd
+3394c56ebb0981ec9718d580dba7bd95 *vignettes/micro-fitting.Rmd
 f790db77ce3ecdb381d793e5dbdbb3db *vignettes/trans-estimation.Rmd
 842c5a0786fae70220f3c0451dbd48f3 *vignettes/trans-fitting.Rmd

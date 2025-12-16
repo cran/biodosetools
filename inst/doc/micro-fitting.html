@@ -367,7 +367,7 @@ fitting module
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>count_data <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="st">&quot;count-data-mayakannan-2018.csv&quot;</span>,</span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>    <span class="at">package =</span> <span class="st">&quot;biodosetools&quot;</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>    utils<span class="sc">::</span><span class="fu">read.csv</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>    <span class="fu">calculate_aberr_table</span>(<span class="at">type =</span> <span class="st">&quot;count&quot;</span>, <span class="at">assessment_u =</span> <span class="fl">1.17</span>)</span></code></pre></div>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>    <span class="fu">calculate_aberr_table</span>(<span class="at">type =</span> <span class="st">&quot;count&quot;</span>, <span class="at">assessment_u =</span> <span class="dv">1</span>)</span></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>count_data</span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="co">#&gt; # A tibble: 10 × 14</span></span>
 <span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co">#&gt;        D     N     X    C0    C1    C2    C3    C4    C5    C6   mean    var</span></span>
